@@ -16,80 +16,92 @@ public class ReadSettings {
         и выводить предупреждения, в случае использования значений по умолчанию,
         в том числе, в отчёте
      */
+
+    /*
+        добавить в файл и в список методов -- метод для определения
+        способа остановки алгоритма: по количеству эпох или по ещё каким-нибудь признакам
+        ******** спросить про способ остановки алгоритма**********
+
+     */
     private String docPath;
     private String reportPath;
-    private String language;
-    private String basisFind;
-    private String task;
-    private String wordsRatingMethod;
-    private String clusterAnalysisMethod;
-    private float trainingTestRatio;
-    private int epochNumber;
-    private int numberOfHiddenLayers;
-    private int numberOfNeurons;
-    private String activationFunction;
-    private String teachingMethod;
-    private float backPropFactor;
+    private String language = "eng";
+    private String basisFind = "stemming";
+    private String task = "classification";
+    private String wordsRatingMethod = "TFIDF";
+    private String clusterAnalysisMethod = "kmeans";
+    private float trainingTestRatio = 0.7f;
+    private int epochNumber = 10000;
+    private int numberOfHiddenLayers = 1;
+    private int numberOfNeurons = 10;
+    private String activationFunction = "sigmoid";
+    private String teachingMethod = "backprop";
+    private float backPropFactor = 0.8f;
     private boolean errorStatus;
 
     public String getDocPath() {
+        //метод возвращает путь к документам
         return docPath;
     }
 
     public String getReportPath() {
+        //метод возвращает путь к файлу отчета
         return reportPath;
     }
 
     public String getLanguage() {
+        //метод возвращает название текущего языка
         return language;
     }
 
     public String getBasisFind() {
+        // метод возвращает имя способа поиска основы
         return  basisFind;
     }
 
     public String getTask() {
-        return task;
+        return task; //имя задачи (классификация или кластеризация)
     }
 
     public String getWordsRatingMethod() {
-        return  wordsRatingMethod;
+        return  wordsRatingMethod; //способ оценивания важности слов (TDIFD, TF)
     }
 
     public String getClusterAnalysisMethod() {
-        return clusterAnalysisMethod;
+        return clusterAnalysisMethod; //метод анализа кластеров (kmeans, cmeans, kohonen)
     }
 
     public float getTrainingTestRatio() {
-        return trainingTestRatio;
+        return trainingTestRatio; //соотношение размера тестовой к тренировочной выборке
     }
 
     public int getEpochNumber() {
-        return epochNumber;
+        return epochNumber; //количество эпох обучения
     }
 
     public int getNumberOfHiddenLayers() {
-        return numberOfHiddenLayers;
+        return numberOfHiddenLayers; //количество скрытых слоев в нейронной сети
     }
 
     public int getNumberOfNeurons() {
-        return numberOfNeurons;
+        return numberOfNeurons; //количество нейронов в слое
     }
 
     public String getActivationFunction() {
-        return activationFunction;
+        return activationFunction; //имя функции активации
     }
 
     public String getTeachingMethod() {
-        return teachingMethod;
+        return teachingMethod; //имя метода обучения (backprop, genetic)
     }
 
     public float getBackPropFactor() {
-        return backPropFactor;
+        return backPropFactor; //коэффициент для backprop способа обучения
     }
 
     public boolean checkError() {
-        return errorStatus;
+        return errorStatus; //ошибка возникает при вызове конструктора без ввода стартовой строки
+        //либо при ошибке во время попытки открытия файла настроек
     }
 
     public ReadSettings() {
@@ -104,7 +116,7 @@ public class ReadSettings {
          */
 
         /*
-            добавить удаление пробелов и добавление комментариев
+            добавить удаление пробелов и комментариев
          */
 
 
@@ -117,7 +129,7 @@ public class ReadSettings {
             while (sc.hasNextLine()) {
                 String s = sc.nextLine();
                 //System.out.println("String original: "+s);
-                s = s.replaceAll("\\s","");
+                s = s.replaceAll("\\s",""); //удаляет все пробелы и табуляции в строке
                 //System.out.println("String without space: "+s);
                 String [] ar = s.split(":=");
                 switch (ar[0]) {
