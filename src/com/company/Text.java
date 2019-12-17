@@ -1,7 +1,6 @@
 package com.company;
 
 import java.util.HashMap;
-import java.util.Map;
 
 public class Text {
     /*
@@ -12,10 +11,10 @@ public class Text {
     сам он их не изменяет
      */
 
-    private Map<String, Integer> dictionary = new HashMap<>();
+    private HashMap<String, Integer> dictionary = new HashMap<>();
     private String name;
     private String theme;
-
+    private double[] textVector;
 
     public void setName(String n) {
         name = n;
@@ -33,12 +32,21 @@ public class Text {
         return theme;
     }
 
-    public void setDictionary(Map d) {
-        dictionary = d;
+    public void setDictionary(HashMap<String, Integer> dictionary) {
+        this.dictionary = dictionary;
+
     }
 
-    public Map getDictionary() {
+    public HashMap<String, Integer> getDictionary() {
         return dictionary;
+    }
+
+    public void setVector(double[] textVector) {
+        this.textVector = textVector;
+    }
+
+    public double[] getVector() {
+        return textVector;
     }
 
 

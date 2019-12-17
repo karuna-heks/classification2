@@ -2,6 +2,7 @@ package com.company;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class ReadSettings {
@@ -11,18 +12,7 @@ public class ReadSettings {
         затем, по запросу, возвращать их в программу
      */
 
-    /*
-        добавить значения по умолчанию для пустых переменных
-        и выводить предупреждения, в случае использования значений по умолчанию,
-        в том числе, в отчёте
-     */
 
-    /*
-        добавить в файл и в список методов -- метод для определения
-        способа остановки алгоритма: по количеству эпох или по ещё каким-нибудь признакам
-        ******** спросить про способ остановки алгоритма**********
-
-     */
     private String docPath;
     private String reportPath;
     private String language = "eng";
@@ -30,7 +20,7 @@ public class ReadSettings {
     private String task = "classification";
     private String wordsRatingMethod = "TFIDF";
     private String clusterAnalysisMethod = "kmeans";
-    private float trainingTestRatio = 0.7f;
+    private float trainingTestRatio = 0.01f;
     private int epochNumber = 10000;
     private int numberOfHiddenLayers = 1;
     private int numberOfNeurons = 10;
@@ -38,6 +28,7 @@ public class ReadSettings {
     private String teachingMethod = "backprop";
     private float backPropFactor = 0.8f;
     private boolean errorStatus;
+    private ArrayList<Integer> structure;
 
     public String getDocPath() {
         //метод возвращает путь к документам
@@ -84,7 +75,13 @@ public class ReadSettings {
     }
 
     public int getNumberOfNeurons() {
+        System.err.println("Method 'getNumberOfNeurons' not supported");
+        System.exit(1);
         return numberOfNeurons; //количество нейронов в слое
+    }
+
+    public ArrayList<Integer> getStructure() {
+        return structure;
     }
 
     public String getActivationFunction() {
@@ -118,7 +115,7 @@ public class ReadSettings {
         /*
             добавить удаление пробелов и комментариев
          */
-
+        structure = new ArrayList<>();
 
         try {
             File input = new File(path);
@@ -130,8 +127,8 @@ public class ReadSettings {
                 String s = sc.nextLine();
                 //System.out.println("String original: "+s);
                 s = s.replaceAll("\\s",""); //удаляет все пробелы и табуляции в строке
-                //System.out.println("String without space: "+s);
-                String [] ar = s.split(":=");
+                System.out.println("String without space: "+s);
+                String[] ar = s.split(":=");
                 switch (ar[0]) {
                     case "DocPath":
                         docPath = ar[1];
@@ -169,13 +166,24 @@ public class ReadSettings {
                         epochNumber = Integer.parseInt(ar[1]);
                         //System.out.println("epochNumber: "+epochNumber);
                         break;
-                    case "NumberOfHiddenLayers":
+
+
+                    /**case "NumberOfHiddenLayers":
                         numberOfHiddenLayers = Integer.parseInt(ar[1]);
                         //System.out.println("numberOfHiddenLayers: "+numberOfHiddenLayers);
                         break;
                     case "NumberOfNeurons":
+                        //добавить возможность использовать переменное число нейронов
                         numberOfNeurons = Integer.parseInt(ar[1]);
                         //System.out.println("numberOfNeurons: "+numberOfNeurons);
+                        break;
+                     **/
+                    case "Structure":
+                        String[] str = ar[1].split("-");
+                        for (int i = 0; (i < str.length)&&(i < 4); i++) {
+                            structure.add(Integer.parseInt(str[i]));
+                        }
+                        numberOfHiddenLayers = structure.size()+1;
                         break;
                     case "ActivationFunction":
                         activationFunction = ar[1];
@@ -194,6 +202,7 @@ public class ReadSettings {
                 }
             }
             sc.close();
+
             errorStatus = false;
         } catch (FileNotFoundException e) {
             System.err.println("Settings file not found");
