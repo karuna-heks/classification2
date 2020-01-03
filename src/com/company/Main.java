@@ -352,6 +352,7 @@ public class Main {
          * nn.printWeightsFile(); - вывести веса всех связей в файл
          *
          *
+         * 
          *
          * *nn.setParameter("settingName", "settingValue"); - запись параметра вручную
          *
