@@ -16,11 +16,13 @@ public class Neuron {
     private double lastOut = 0; //сохраняем последнее значение выхода НС для backprop //мб удалить
     private double delta_w; //dw дельта весов
     private double learningRate; //скорость обучения
+    private int sizeOfInputs; //кол-во входов
 
     public double calcNeuron(double[] array) {
-        inputArray = array;
+        //inputArray = array;
+        System.arraycopy(array,0,inputArray,0,sizeOfInputs);
         output = 0;
-        for (int i = 0; i < inputArray.length; i++) {
+        for (int i = 0; i < sizeOfInputs; i++) {
             output = output + inputArray[i]*synapses[i];
         } //вычисление произведения весов синапсов на входы
 
@@ -63,7 +65,7 @@ public class Neuron {
                 break;
         }
 
-        for (int i = 0; i < synapses.length; i++) {
+        for (int i = 0; i < sizeOfInputs; i++) {
             synapses[i] = synapses[i] - inputArray[i]*delta_w*learningRate;
         }
     }
@@ -109,14 +111,14 @@ public class Neuron {
 
     public double getWeightsSum() {
         double sum = 0;
-        for (int i = 0; i < synapses.length; i++) {
+        for (int i = 0; i < sizeOfInputs; i++) {
             sum = sum + synapses[i];
         }
         return sum;
     }
 
     public void setRandomWeights() {
-        for (int i = 0; i < synapses.length; i++) {
+        for (int i = 0; i < sizeOfInputs; i++) {
             synapses[i] = Math.random()*2-1;
             /*
                 кладём в каждую ячейку массива весов нейронов случайный вес,
@@ -148,8 +150,11 @@ public class Neuron {
          */
 
         synapses = new double[num];
+
         this.learningRate = learningRate;
         this.func = func;
+        sizeOfInputs = synapses.length;
+        inputArray = new double[sizeOfInputs];
     }
 
     public void setLearningRate(double learningRate) {
@@ -158,9 +163,15 @@ public class Neuron {
 
     public Neuron(int num) {
         synapses = new double[num];
+        sizeOfInputs = synapses.length;
     }
 
     public double getLastOut() {
         return lastOut;
+    }
+
+
+    public int getSizeOfInput() {
+        return sizeOfInputs;
     }
 }

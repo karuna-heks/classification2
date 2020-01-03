@@ -390,11 +390,6 @@ public class NeuralNetwork {
                 System.out.println("warning");
                 return output1;
         }
-        /*
-            мб следует разделить весь участок на этапы, где
-            началом каждого этапа будет являться определение входов слоя
-            а окончанием -- вычисление выходов слоя
-         */
     }
 
     private int[] getAns(Text text) {
@@ -566,6 +561,14 @@ public class NeuralNetwork {
     private void checkStop(int actEpoch) {
 
     }
+
+
+
+
+
+
+
+
 
 
 }
