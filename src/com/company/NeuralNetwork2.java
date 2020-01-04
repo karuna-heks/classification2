@@ -9,6 +9,34 @@ import java.util.Scanner;
 
 
 
+/**
+ * NeuralNetwork nn = new NeuralNetwork(); - создание объекта
+ * *nn.readSettingsFile(String path); - задание полного пути к файлу настроек, чтение файла и загрузка настроек
+ * *nn.initialization(int numInputs, int numOutputs); - создание архитектуры НС
+ * *nn.setData(List<double[]> inputs, List<double[]> desireOutputs); - добавление данных в НС (автоматом сформирует тест/обуч выборку)
+ * nn.setDataLearning(List<double[]> inputs, List<double[]> desireOutputs); - добавление обучающих данных в НС
+ * nn.setDataTest(List<double[]> inputs, List<double[]> desireOutputs); - добавление тестовых данных в НС
+ * *nn.learning(); - запуск обучения, причём условие остановки берётся из файла
+ * *nn.learning(int epoch); - запуск обучения, условие остановки - кол-во эпох
+ * *nn.learning(int epoch, int winRate); - запуск обучения, условие остановки - кол-во эпох или винрейт
+ * *nn.singlePass(double[] input); - одиночный проход данных через нейронную сеть и выдача вектора выходов
+ * *nn.singlePass(double[] input, double[] output); - одиночный проход данных через и выдача (результата прохода или вектора совпадений)
+ * *nn.singleLearningPass(double[] input, double[] output); - одиночных проход данных с обучением
+ * nn.printResult(); - вывести результаты на экран
+ * nn.printResultFile(); - вывести результаты по пути в настройках, либо по умолчанию
+ * nn.printResultFile(String path); - вывести результаты по заданному пути
+ * nn.printWeights(); - вывести веса всех связей
+ * nn.printWeightsFile(); - вывести веса всех связей в файл
+ *
+ *
+ *
+ *
+ * *nn.setParameter("settingName", "settingValue"); - запись параметра вручную
+ *
+ * NeuralNetwork nn = new NeuralNetwork(settingsStruct, inputs, desireOutputs);
+ *
+ */
+
 
 
 
