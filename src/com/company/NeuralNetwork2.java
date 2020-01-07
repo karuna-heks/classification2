@@ -2,6 +2,7 @@ package com.company;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -46,7 +47,6 @@ public class NeuralNetwork2 {
 
 
     //// параметры настройки НС из файла
-    private String reportPath;
     private float trainingTestRatio = 0.7f;
     private int epochNumber;
     private ArrayList<Integer> structure;
@@ -55,6 +55,11 @@ public class NeuralNetwork2 {
     private float backPropFactor = 0.05f;
     private boolean errorStatus;
     private List<Integer> sizeOfLayers = new ArrayList<>();
+
+    //условие остановки алгоритма, где 2 - по кол-ву эпох, 1 - по кол-ву правильно угаданных текстов, 0 - оба условия
+    private int stopCondition = 0;
+
+    private float winRateCondition = 0.99f; //желаемое соотношение правильно угаданных текстов
     ////
     private int numberOfOutputs;
     private double[] tempOutputArray;
@@ -69,11 +74,9 @@ public class NeuralNetwork2 {
     private double[] inputSignals;
     private double[] tempArrayBackProp;
 
-    double winRate;
+    float winRate;
 
     //// списки с входными и выходными данными НС
-    private List<double[]> inputData;
-    private List<double[]> outputData;
     private List<double[]> inputDataLearning;
     private List<double[]> outputDataLearning;
     private List<double[]> inputDataTesting;
@@ -83,6 +86,12 @@ public class NeuralNetwork2 {
     private List<double[]> listOfTempArrays = new ArrayList<>();
 
 
+    //массивы для выходных данных графика
+    private double[] epochArray; //массив с номерами эпох (для промежуточного хранения данных)
+    private double[] winRateArray; //массив с винрейтом (для промежуточного хранения данных)
+    private int plotCounter = 0; //счетчик текущего номера элемента массива
+    double[] newEpochArray; //массив с номерами эпох (для итогового вывода данных)
+    double[] newWinRateArray; //массив с винрейтом (для итогового вывода данных)
 
     public void readSettingsFile(String path) {
         /**задание полного пути к файлу настроек, чтение файла и загрузка настроек**/
@@ -105,6 +114,12 @@ public class NeuralNetwork2 {
                     case "TrainingTestRatio":
                         trainingTestRatio = Float.parseFloat(ar[1]);
                         //System.out.println("trainingTestRatio: "+trainingTestRatio);
+                        break;
+                    case "StopCondition":
+                        stopCondition = Integer.parseInt(ar[1]);
+                        break;
+                    case "Winrate":
+                        winRateCondition = Float.parseFloat(ar[1]);
                         break;
                     case "EpochNumber":
                         epochNumber = Integer.parseInt(ar[1]);
@@ -198,27 +213,6 @@ public class NeuralNetwork2 {
 
 
 
-    public void setData(List<double[]> inputs, List<double[]> outputs) {
-        /** добавление данных в НС (автоматом сформирует тест/обуч выборку) **/
-
-        inputData = inputs;
-        outputData = outputs;
-
-        /*
-            создать алгоритм случайного разбиения на тестовую и обучающую выборку
-         */
-        inputDataLearning = inputs;
-        outputDataLearning = outputs;
-        inputDataTesting = inputs;
-        outputDataTesting = outputs;
-
-        /*
-            мб сразу сформировать массив номеров победителей
-         */
-    }
-
-
-
     public void setDataLearning(List<double[]> inputs, List<double[]> outputs) {
         /** добавление обучающих данных в НС **/
         inputDataLearning = inputs;
@@ -242,12 +236,17 @@ public class NeuralNetwork2 {
 
 
     public void learning() {
-        /** запуск обучения, причём условие остановки берётся из файла **/
+        // запуск обучения, причём условие остановки берётся из файла
 
         int winnerNode; //номер узла победителя
         int desireWinnerNode; //номер желаемого узла победителя
-        int winnerCount; //счетчик количества побед
-        int loserCount; //счетчик количества поражений
+        float winnerCount; //счетчик количества побед
+        float loserCount; //счетчик количества поражений
+        int lastEpoch = 0; //переменная хранит номер эпохи, на которой алгоритм был остановлен
+
+        //объявляем размер массивов для выходных данных графика
+        epochArray = new double[epochNumber];
+        winRateArray = new double[epochNumber];
 
 
         for (int epoch = 0; epoch < epochNumber; epoch++) {
@@ -272,20 +271,46 @@ public class NeuralNetwork2 {
                 }
             }
             winRate = winnerCount/(winnerCount+loserCount);
+            saveDataToPlot(epoch, winRate);
             System.out.println("Winrate = "+winRate+". Epoch = "+epoch);
+            if (stopCondition != 2) {
+                if (winRate >= winRateCondition) {
+                    System.out.println("Winrate condition is satisfied!");
+                    //сохранить метку, на которой произошла остановка
+                    lastEpoch = epoch;
+                    break;
+                }
+            }
+        }
+
+        if (lastEpoch == 0) {
+            //если выход из цикла произошёл по окончанию кол-ва эпох,
+            //то отправить все данные на печать
+            pushDataToPlot();
+        }
+        else {
+            //если выход из цикла произошёл по условию получения нужного
+            //количества соотношения угаданных текстов, то отправить
+            //метку с номером последней эпохи и отправить данные на печать
+            pushDataToPlot(lastEpoch);
         }
     }
 
 
 
     public void learning(int epochExtend) {
-        /** запуск обучения, условие остановки - кол-во эпох **/
+        // запуск обучения, условие остановки - кол-во эпох **/
 
         int winnerNode; //номер узла победителя
         int desireWinnerNode; //номер желаемого узла победителя
-        double winnerCount; //счетчик количества побед
-        double loserCount; //счетчик количества поражений
-        double winRate;
+        float winnerCount; //счетчик количества побед
+        float loserCount; //счетчик количества поражений
+        int lastEpoch = 0; //переменная хранит номер эпохи, на которой алгоритм был остановлен
+
+        //объявляем размер массивов для выходных данных графика
+        epochArray = new double[epochExtend];
+        winRateArray = new double[epochExtend];
+
 
         for (int epoch = 0; epoch < epochExtend; epoch++) {
 
@@ -307,37 +332,50 @@ public class NeuralNetwork2 {
                 else {
                     loserCount++;
                 }
-                /*if ((i == 0)||(i == 10)) {
-                    tempArrayBackProp = layers.get(2).getLastOutput();
-                    System.out.print("i ="+i+"; Output: ");
-                    for (int j = 0; j < tempArrayBackProp.length; j++) {
-                        System.out.print(tempArrayBackProp[j]+":");
-                    }
-                    System.out.print(" Desire Out: ");
-                    tempArrayBackProp = outputDataTesting.get(i);
-                    for (int j = 0; j < tempArrayBackProp.length; j++) {
-                        System.out.print(tempArrayBackProp[j]+":");
-                    }
-                    System.out.print("\n");
-                }*/
             }
             winRate = winnerCount/(winnerCount+loserCount);
-            System.out.println("Winrate = "+winRate+"; Epoch = "+epoch);
+            saveDataToPlot(epoch, winRate);
+            System.out.println("Winrate = "+winRate+". Epoch = "+epoch);
+            if (stopCondition != 2) {
+                if (winRate >= winRateCondition) {
+                    System.out.println("Winrate condition is satisfied!");
+                    //сохранить метку, на которой произошла остановка
+                    lastEpoch = epoch;
+                    break;
+                }
+            }
+        }
+
+        if (lastEpoch == 0) {
+            //если выход из цикла произошёл по окончанию кол-ва эпох,
+            //то отправить все данные на печать
+            pushDataToPlot();
+        }
+        else {
+            //если выход из цикла произошёл по условию получения нужного
+            //количества соотношения угаданных текстов, то отправить
+            //метку с номером последней эпохи и отправить данные на печать
+            pushDataToPlot(lastEpoch);
         }
     }
 
 
 
-    public void learning(int epochExtend, int winRateDesire) {
-        /** запуск обучения, условие остановки - кол-во эпох или винрейт **/
+    public void learning(int epochExtend, float winRateDesire) {
+        // запуск обучения, условие остановки - кол-во эпох или винрейт **/
 
         int winnerNode; //номер узла победителя
         int desireWinnerNode; //номер желаемого узла победителя
-        int winnerCount; //счетчик количества побед
-        int loserCount; //счетчик количества поражений
-        double winRate = 0;
+        float winnerCount; //счетчик количества побед
+        float loserCount; //счетчик количества поражений
+        int lastEpoch = 0; //переменная хранит номер эпохи, на которой алгоритм был остановлен
 
-        for (int epoch = 0; ((epoch < epochExtend)||(winRate >= winRateDesire)); epoch++) {
+        //объявляем размер массивов для выходных данных графика
+        epochArray = new double[epochExtend];
+        winRateArray = new double[epochExtend];
+
+
+        for (int epoch = 0; ((epoch < epochExtend)&&(winRate < winRateDesire)); epoch++) {
 
             //перебираем массив обучающей выборки
             for (int i = 0; i < inputDataLearning.size(); i++) {
@@ -358,8 +396,30 @@ public class NeuralNetwork2 {
                     loserCount++;
                 }
             }
+
             winRate = winnerCount/(winnerCount+loserCount);
+            saveDataToPlot(epoch, winRate);
             System.out.println("Winrate = "+winRate+". Epoch = "+epoch);
+            if (stopCondition != 2) {
+                if (winRate >= winRateCondition) {
+                    System.out.println("Winrate condition is satisfied!");
+                    //сохранить метку, на которой произошла остановка
+                    lastEpoch = epoch;
+                    break;
+                }
+            }
+        }
+
+        if (lastEpoch == 0) {
+            //если выход из цикла произошёл по окончанию кол-ва эпох,
+            //то отправить все данные на печать
+            pushDataToPlot();
+        }
+        else {
+            //если выход из цикла произошёл по условию получения нужного
+            //количества соотношения угаданных текстов, то отправить
+            //метку с номером последней эпохи и отправить данные на печать
+            pushDataToPlot(lastEpoch);
         }
     }
 
@@ -471,8 +531,47 @@ public class NeuralNetwork2 {
     }
 
 
+    private void saveDataToPlot(double x, double y) {
+        //метод сохраняет данные для отправки на печать
+        epochArray[plotCounter] = x;
+        winRateArray[plotCounter] = y;
+        plotCounter++;
+    }
 
 
+    private void pushDataToPlot(int epoch) {
+        //метод отправляет нужное количество данных на печать
+        newEpochArray = new double[epoch];
+        newWinRateArray = new double[epoch];
+
+        for (int i = 0; i < epoch; i++) {
+            newEpochArray[i] = epochArray[i];
+            newWinRateArray[i] = winRateArray[i];
+        }
+
+    }
+
+    private void pushDataToPlot() {
+        //метод отправляет все данные на печать
+        newEpochArray = epochArray;
+        newWinRateArray = winRateArray;
+    }
+
+
+    public void createReport(String reportPath) {
+
+
+        try {
+            Plot plot = Plot.plot(null).
+                    series(null, Plot.data().
+                            xy(newEpochArray, newWinRateArray), null);
+
+            plot.save(reportPath + "learningGraph", "png");
+        }
+        catch (IOException e) {
+            System.err.format("IOException. File plot error");
+        }
+    }
 
 
 

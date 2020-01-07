@@ -119,13 +119,13 @@ public class ReadSettings {
 
         try {
             File input = new File(path);
-            Scanner sc = new Scanner(input);
+            Scanner sc = new Scanner(input, "UTF-8");
 
 
 
             while (sc.hasNextLine()) {
                 String s = sc.nextLine();
-                //System.out.println("String original: "+s);
+                System.out.println("String original: "+s);
                 s = s.replaceAll("\\s",""); //удаляет все пробелы и табуляции в строке
                 System.out.println("String without space: "+s);
                 String[] ar = s.split(":=");

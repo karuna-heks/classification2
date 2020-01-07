@@ -50,9 +50,7 @@ public class textAnalyzer {
 
         System.out.println("Формирование глобального словаря...");
         for (int i = 0; i < listOfTexts.size(); i++) {
-            //for (Text t : listOfTexts) {
             //проход для формирования глобального словаря
-            //HashMap<String, Integer> localDictionary = t.getDictionary();
             HashMap<String, Integer> localDictionary = listOfTexts.get(i).getDictionary();
             for  (Map.Entry<String, Integer> entry : localDictionary.entrySet()) {
                 String tempKey = entry.getKey();
@@ -61,57 +59,49 @@ public class textAnalyzer {
                     //то увеличиваем счётчик встречаемости этого слова в корпусе
                     Integer tempValGlob = globalDictionary.get(tempKey);
                     Integer tempValLoc = entry.getValue();
-                    //System.out.println("tempValGlob = "+tempValGlob);
-                    //System.out.println("tempValLoc = "+tempValLoc);
-                    //System.out.println("tempKey = "+tempKey);
                     globalDictionary.replace(tempKey, tempValGlob + tempValLoc);
                 }
                 else {
                     //если этого слова ещё нет, то добавляем его
                     //и запоминаем, сколько раз оно встретилось
                     Integer tempValLoc = entry.getValue();
-                    //System.out.println("tempValLoc = "+tempValLoc);
-                    //System.out.println("tempKey = "+tempKey);
                     globalDictionary.put(tempKey, tempValLoc);
                 }
-                //System.out.println("Global dictionary size: "+ globalDictionary.size());
             }
-            //System.out.println("Global dictionary size: "+ globalDictionary.size());
-            //System.out.println("Global dictionary: ");
             //for (Map.Entry<String, Integer> entry : globalDictionary.entrySet()) {
             //    System.out.println(entry.getKey() + " : " + entry.getValue());
             //}
             //System.out.println("End of global dictionary.");
         }
 
+        //System.out.println("Global dictionary size: "+ globalDictionary.size());
+        //System.out.println("Global dictionary: ");
 
-        //List<double[]> inputArrays = new ArrayList<>(); //список всех входных векторов
-        //<>
+
         System.out.println("Формирование векторов текстов...");
-        for (Text t : listOfTexts) {
-            //проход для формирования векторов текстов
-            double[] textVector = new double[globalDictionary.size()];
-            HashMap<String, Integer> localDictionary = t.getDictionary();
-            int i = 0;
-            for  (Map.Entry<String, Integer> entry : globalDictionary.entrySet()) {
-                String tempKey = entry.getKey();
-                if (localDictionary.containsKey(tempKey)) {
-                    textVector[i] = (double)localDictionary.get(tempKey);
-                }
-                else {
-                    textVector[i] = 0;
-                }
-                i++;
-            }
-            t.setVector(textVector);
-            //inputArrays.add(textVector);
+
+
+
+        //формирование вектора текста будет происходить на основе одной из выбранных
+        //статистических мер. (количественная, частотная, tfidf)
+        //тут происходит выполнение алгоритма формирования вектора на основе выбранной меры,
+        //имя которой должно храниться в переменной numericalStatisticType
+        switch(numericalStatisticType) {
+            case "quantity": //количественная мера
+                quantityMeasureCalc(); //запуск алгоритма формирования вектора текста на основе количественной меры
+                break;
+            case "tfidf": //отношение числа вхождений некоторого слова к общему числу слов документа
+                tfidfMeasureCalc();
+                break;
+            case "tf": //частотная мера
+                tfMeasureCalc();
+                break;
+            default: //если параметр выбран неверный либо он оказался пуст, то вывести предупреждение и выбрать
+                //меру по умолчанию
+                System.out.println("Warning. Default case: numericalStatisticType");
+                quantityMeasureCalc();
+                break;
         }
-
-
-        System.out.println("Global dictionary size: "+ globalDictionary.size());
-        System.out.println("Global dictionary: ");
-
-
 
 
         //подпрограмма формирования списков с векторами текстов
@@ -222,16 +212,8 @@ public class textAnalyzer {
             tempArray = numberToArray(topicNumber.get(listOfTexts.get(tempVal).getTheme()), numberOfThemes);
             dataTestingOutputs.add(tempArray);
         }
-        ///////////////**************************************
     }
 
-
-    /*
-        List<double[]> dataLearningInputs = new ArrayList<>();
-        List<double[]> dataTestingInputs = new ArrayList<>();
-        List<double[]> dataLearningOutputs = new ArrayList<>();
-        List<double[]> dataTestingOutputs = new ArrayList<>();
-     */
 
     public List<double[]> getDataLearningInputs() {
         return dataLearningInputs;
@@ -333,5 +315,79 @@ public class textAnalyzer {
             }
         }
         return outputArray;
+    }
+
+    private void quantityMeasureCalc() {
+        for (Text t : listOfTexts) {
+            //проход для формирования векторов текстов
+            double[] textVector = new double[globalDictionary.size()];
+            HashMap<String, Integer> localDictionary = t.getDictionary();
+            int i = 0;
+            for  (Map.Entry<String, Integer> entry : globalDictionary.entrySet()) {
+                String tempKey = entry.getKey();
+                if (localDictionary.containsKey(tempKey)) {
+                    textVector[i] = (double)localDictionary.get(tempKey);
+                }
+                else {
+                    textVector[i] = 0;
+                }
+                i++;
+            }
+            t.setVector(textVector);
+            //inputArrays.add(textVector);
+        }
+    }
+
+    private void tfMeasureCalc() {
+        for (Text t : listOfTexts) {
+            //проход для формирования векторов текстов
+            double[] textVector = new double[globalDictionary.size()];
+            HashMap<String, Integer> localDictionary = t.getDictionary();
+            int i = 0;
+            for  (Map.Entry<String, Integer> entry : globalDictionary.entrySet()) {
+                String tempKey = entry.getKey();
+                if (localDictionary.containsKey(tempKey)) {
+                    textVector[i] = (double)localDictionary.get(tempKey)*100/globalDictionary.size();
+                }
+                else {
+                    textVector[i] = 0;
+                }
+                i++;
+            }
+            t.setVector(textVector);
+        }
+    }
+
+    private void tfidfMeasureCalc() {
+
+        double tf, idf;
+        double wordInDocCount;
+        for (Text t : listOfTexts) {
+            //проход для формирования векторов текстов
+            double[] textVector = new double[globalDictionary.size()];
+            HashMap<String, Integer> localDictionary = t.getDictionary();
+            int i = 0;
+            for  (Map.Entry<String, Integer> entry : globalDictionary.entrySet()) {
+                String tempKey = entry.getKey();
+                if (localDictionary.containsKey(tempKey)) {
+                    //textVector[i] = (double)localDictionary.get(tempKey)*100/globalDictionary.size();
+                    tf = (double)localDictionary.get(tempKey)*100/globalDictionary.size();
+                    wordInDocCount = 0;
+                    for (Text t2 : listOfTexts) {
+                        if (t2.getDictionary().containsKey(tempKey)) {
+                            wordInDocCount++;
+                        }
+                    }
+                    idf = Math.log10(listOfTexts.size()/wordInDocCount);
+                    textVector[i] = tf*idf;
+                }
+                else {
+                    textVector[i] = 0;
+                }
+                i++;
+            }
+            t.setVector(textVector);
+        }
+
     }
 }

@@ -2,6 +2,9 @@ package com.company;
 
 import java.io.*;
 import java.util.*;
+import java.util.List;
+
+
 
 public class Main {
 
@@ -13,13 +16,6 @@ public class Main {
 
 
 
-        /*
-            добавить объект класса Settings, который
-            будет открывать файл с настройками,
-            считывать их и запоминать.
-         */
-
-
         // добавить ввод пути для настроек через консоль
         ReadSettings settings = new ReadSettings("D://javaPrg/NN_Settings.txt");
         if (settings.checkError() == true)
@@ -29,6 +25,7 @@ public class Main {
 
 
         List<String> listOfTextAddress = new ArrayList<>();
+
 
 
 
@@ -45,6 +42,8 @@ public class Main {
             //System.out.println(tempString);
             listOfThemeAddress.add(tempString);
         }
+
+
 
         System.out.println("Поиск доступных текстов...");
         for (int i = 0; i < numberOfThemes; i++) {
@@ -63,10 +62,6 @@ public class Main {
         }
         //на выходе имеем список с адресами всех файлов, сохраненном в listOfTextAddress
 
-
-
-        //создать словарь всех слов, наполнить его из списка listOfTexts
-        //HashMap<String, Integer> globalDictionary = new HashMap<>();
 
 
 
@@ -91,33 +86,8 @@ public class Main {
 
 
 
-
-
-        /**
-         * ***********************************************************************************************************
-         */
-
-
-
-        /**
-         * ***********************************************************************************************************
-         */
-
-
-        /**
-         * List<double[]> dataLearningInputs = new ArrayList<>();
-         * List<double[]> dataTestingInputs = new ArrayList<>();
-         * List<double[]> dataLearningOutputs = new ArrayList<>();
-         * List<double[]> dataTestingOutputs = new ArrayList<>();
-         * dataLearningInputs = textAnalyzer.getDataLearningInputs();
-         * dataTestingInputs = textAnalyzer.getDataTestingInputs();
-         * dataLearningOutputs = textAnalyzer.getDataLearningOutputs();
-         * dataTestingOutputs = textAnalyzer.getDataTestingOutputs();
-         *
-         */
-
         textAnalyzer analyzer = new textAnalyzer();
-        analyzer.analyzerInit(listOfTexts, "tfidf", 0.3f);
+        analyzer.analyzerInit(listOfTexts, "tf");
         analyzer.setParameter("trainingTestRatio", settings.getTrainingTestRatio());
         analyzer.setParameter("numberOfThemes", numberOfThemes);
         analyzer.startAnalyze();
@@ -134,16 +104,13 @@ public class Main {
 
 
 
-
-
         NeuralNetwork2 nn2 = new NeuralNetwork2();
         nn2.readSettingsFile("D://javaPrg/NN_Settings.txt");
         nn2.initialization(analyzer.getGlobalDictionary().size(), numberOfThemes);
-        //nn2.setDataLearning(dataLearningInputs, dataLearningOutputs);
-        nn2.setDataLearning(dataTestingInputs, dataTestingOutputs);
+        nn2.setDataLearning(dataLearningInputs, dataLearningOutputs);
+        //nn2.setDataLearning(dataTestingInputs, dataTestingOutputs);
         nn2.setDataTesting(dataTestingInputs, dataTestingOutputs);
-        nn2.learning(5000);
-
+        nn2.learning();
 
 
 
@@ -157,10 +124,15 @@ public class Main {
             String timeStart = timer.getStartTime();
             String timeStop = timer.getStopTime();
             String timeStartSimple = timer.getStartTimeSimple();
+            String finalReportPath = settings.getReportPath() + "/" + timeStartSimple + "_report/";
+
+            File destFile = new File(finalReportPath);
+            destFile.mkdirs();
 
 
-            String reportName = timeStartSimple + "_reportMain.txt";
-            FileWriter writer = new FileWriter(reportName);
+
+            String reportName = finalReportPath + "reportMain.txt";
+            FileWriter writer = new FileWriter(reportName, false);
             BufferedWriter bw = new BufferedWriter(writer);
 
 
@@ -173,7 +145,7 @@ public class Main {
             bw.close();
             writer.close();
 
-            reportName = timeStartSimple + "_reportDetail.txt";
+            reportName = finalReportPath + "reportDetail.txt";
             writer = new FileWriter(reportName);
             bw = new BufferedWriter(writer);
 
@@ -187,15 +159,11 @@ public class Main {
             bw.write("Конец глобального словаря");
 
 
+            nn2.createReport(finalReportPath); //сформировать и сохранить график обучения
         }
         catch (IOException e) {
-            System.err.format("IOException");
+            System.err.format("IOException. File report error");
         }
-
-
-
-
-
 
 
 
@@ -208,8 +176,6 @@ public class Main {
         //report.importLearningData();
         //report.importSettings();
         //report.createReportFile();
-
-
 
 
         /*
@@ -227,10 +193,4 @@ public class Main {
 
 
     }
-
-
-
-
-
-
 }
